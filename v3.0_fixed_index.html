@@ -1,0 +1,2460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>修仙挂机 V7.3 - 系统联动升级</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+<!-- 配置Tailwind自定义颜色和字体 -->
+<script>
+tailwind.config = {
+theme: {
+extend: {
+colors: {
+primary: '#4F46E5',
+secondary: '#10B981',
+accent: '#F59E0B',
+dark: '#1E293B',
+light: '#F8FAFC',
+debug: '#EF4444',
+inventory: '#6366F1',
+equipment: '#8B5CF6',
+battle: '#DC2626',
+magic: '#EC4899',
+exp: '#10B981',
+boost: '#F59E0B',
+material: '#84CC16',
+spell: '#EC4899',
+common: '#9CA3AF',
+rare: '#3B82F6',
+epic: '#A855F7',
+legendary: '#F59E0B',
+mythic: '#FF4500', // 神话级装备颜色
+mortal: '#94A3B8',
+foundation: '#60A5FA',
+golden: '#F59E0B',
+nascent: '#EC4899',
+soul: '#8B5CF6',
+immortal: '#10B981'
+},
+fontFamily: {
+inter: ['Inter', 'sans-serif'],
+},
+}
+}
+}
+</script>
+
+<!-- 自定义工具类 -->
+<style type="text/tailwindcss">
+@layer utilities {
+.glow {
+box-shadow: 0 0 20px rgba(79, 70, 229, 0.5);
+}
+.text-shadow {
+text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+.backdrop-blur-sm {
+backdrop-filter: blur(8px);
+}
+.mythic-glow {
+box-shadow: 0 0 30px rgba(255, 69, 0, 0.6);
+}
+}
+</style>
+
+<style>
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+width: 6px;
+height: 6px;
+}
+
+::-webkit-scrollbar-track {
+background: rgba(15, 23, 42, 0.5);
+border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+background: rgba(79, 70, 229, 0.6);
+border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+background: rgba(79, 70, 229, 0.8);
+}
+
+/* 战斗HP条样式 */
+.battle-hp-bar {
+height: 8px;
+border-radius: 4px;
+overflow: hidden;
+}
+
+/* 法术选择器样式 */
+.spell-selector {
+position: absolute;
+top: 100%;
+right: 0;
+z-index: 10;
+width: 200px;
+background: rgba(15, 23, 42, 0.95);
+border: 1px solid rgba(139, 92, 246, 0.3);
+border-radius: 8px;
+margin-top: 8px;
+max-height: 300px;
+overflow-y: auto;
+}
+
+.spell-selector button {
+display: block;
+width: 100%;
+text-align: left;
+padding: 8px 12px;
+color: white;
+background: transparent;
+border: none;
+border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+transition: all 0.2s ease;
+}
+
+.spell-selector button:last-child {
+border-bottom: none;
+}
+
+.spell-selector button:hover {
+background: rgba(139, 92, 246, 0.2);
+}
+
+/* 物品卡片悬停效果 */
+.item-card {
+transition: all 0.3s ease;
+}
+
+.item-card:hover {
+transform: translateY(-2px);
+box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* 装备槽位样式 */
+.equipment-slot {
+transition: all 0.3s ease;
+}
+
+.equipment-slot:hover {
+transform: scale(1.05);
+}
+
+/* 按钮动画效果 */
+button {
+transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:hover {
+transform: translateY(-2px);
+}
+
+button:active {
+transform: translateY(0);
+}
+
+/* 弹窗动画 */
+.popup {
+animation: popup 0.6s ease-out;
+}
+
+@keyframes popup {
+0% {
+opacity: 0;
+transform: translate(-50%, -100px) scale(0.8);
+}
+50% {
+opacity: 1;
+transform: translate(-50%, -60px) scale(1.05);
+}
+100% {
+opacity: 1;
+transform: translate(-50%, -80px) scale(1);
+}
+}
+
+/* 加载动画 */
+@keyframes spin {
+from { transform: rotate(0deg); }
+to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+animation: spin 1s linear infinite;
+}
+
+/* 突破动画 */
+@keyframes breakthrough {
+0% { transform: scale(1); opacity: 1; }
+50% { transform: scale(1.2); opacity: 0.8; }
+100% { transform: scale(1); opacity: 1; }
+}
+
+.breakthrough-animation {
+animation: breakthrough 0.8s ease-in-out;
+}
+
+/* 通知提示样式 */
+.notification {
+position: fixed;
+top: 20px;
+right: 20px;
+background: rgba(16, 185, 129, 0.9);
+color: white;
+padding: 12px 20px;
+border-radius: 8px;
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+z-index: 1000;
+opacity: 0;
+transform: translateX(100%);
+transition: all 0.3s ease;
+}
+
+.notification.show {
+opacity: 1;
+transform: translateX(0);
+}
+
+.notification.error {
+background: rgba(239, 68, 68, 0.9);
+}
+
+.notification.warning {
+background: rgba(245, 158, 11, 0.9);
+}
+
+.notification.mythic {
+background: linear-gradient(135deg, #FF4500, #FF6347);
+box-shadow: 0 8px 25px rgba(255, 69, 0, 0.4);
+}
+
+/* 突破按钮样式 */
+.breakthrough-btn {
+background: linear-gradient(135deg, #10B981, #059669);
+border: 2px solid #34D399;
+color: white;
+font-weight: bold;
+padding: 12px 24px;
+border-radius: 12px;
+cursor: pointer;
+transition: all 0.3s ease;
+box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+}
+
+.breakthrough-btn:hover {
+transform: translateY(-3px) scale(1.05);
+box-shadow: 0 12px 35px rgba(16, 185, 129, 0.4);
+}
+
+.breakthrough-btn:active {
+transform: translateY(-1px) scale(1.02);
+}
+
+/* 打坐修炼按钮样式 */
+.meditation-active {
+background: linear-gradient(135deg, #EC4899, #DB2777);
+border-color: #F472B6;
+animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+0%, 100% { opacity: 1; }
+50% { opacity: 0.8; }
+}
+
+/* 倒计时样式 */
+.countdown {
+background: rgba(16, 185, 129, 0.2);
+color: #10B981;
+padding: 4px 12px;
+border-radius: 16px;
+font-size: 14px;
+font-weight: 600;
+border: 1px solid #34D399;
+}
+
+/* 神话级装备样式 */
+.mythic-equipment {
+background: linear-gradient(135deg, rgba(255, 69, 0, 0.2), rgba(255, 140, 0, 0.2));
+border: 2px solid #FF4500;
+position: relative;
+overflow: hidden;
+}
+
+.mythic-equipment::before {
+content: '';
+position: absolute;
+top: 0;
+left: -100%;
+width: 100%;
+height: 100%;
+background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+animation: mythicShine 3s infinite;
+}
+
+@keyframes mythicShine {
+0% { left: -100%; }
+100% { left: 100%; }
+}
+
+/* 神兽挑战按钮样式 */
+.boss-challenge-btn {
+background: linear-gradient(135deg, #FF4500, #FF6347);
+border: 2px solid #FFD700;
+color: white;
+font-weight: bold;
+padding: 12px 24px;
+border-radius: 12px;
+cursor: pointer;
+transition: all 0.3s ease;
+box-shadow: 0 8px 25px rgba(255, 69, 0, 0.4);
+animation: bossPulse 2s infinite;
+}
+
+@keyframes bossPulse {
+0%, 100% { box-shadow: 0 8px 25px rgba(255, 69, 0, 0.4); }
+50% { box-shadow: 0 12px 35px rgba(255, 69, 0, 0.6); }
+}
+
+.boss-challenge-btn:hover {
+transform: translateY(-3px) scale(1.05);
+box-shadow: 0 15px 40px rgba(255, 69, 0, 0.5);
+}
+
+/* 激活装备样式 */
+.activated-equipment {
+border: 2px solid #10B981;
+background: rgba(16, 185, 129, 0.1);
+}
+
+/* 战斗统计样式 */
+.battle-stats {
+position: fixed;
+bottom: 20px;
+right: 20px;
+background: rgba(15, 23, 42, 0.9);
+border: 1px solid rgba(79, 70, 229, 0.3);
+border-radius: 8px;
+padding: 12px;
+z-index: 900;
+font-size: 12px;
+}
+
+.battle-stats p {
+margin: 2px 0;
+color: #94A3B8;
+}
+
+.battle-stats .highlight {
+color: #F59E0B;
+font-weight: bold;
+}
+</style>
+</head>
+<body class="bg-gradient-to-br from-dark to-slate-800 min-h-screen font-inter text-light p-4 md:p-8">
+<!-- 管理员入口链接 -->
+<div class="p-3 text-right">
+    <a href="admin-tools.html" class="text-xs text-debug hover:underline">管理员工具</a>
+</div>
+
+<!-- 游戏加载提示 -->
+<div id="loading-screen" class="fixed inset-0 bg-dark/90 z-50 flex flex-col items-center justify-center">
+<div class="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+<p class="text-xl font-medium">修仙世界加载中...</p>
+<p class="text-slate-400 mt-2" id="loading-status">正在初始化灵气...</p>
+<div id="error-message" class="mt-4 text-debug text-sm hidden"></div>
+<button id="retry-button" class="mt-6 py-2 px-4 bg-primary hover:bg-primary/80 text-white rounded-lg hidden">
+重试加载
+</button>
+</div>
+
+<!-- 通知提示 -->
+<div id="notification" class="notification">操作成功！</div>
+
+<!-- 战斗统计面板 -->
+<div class="battle-stats">
+<p>总战斗次数: <span id="total-battles" class="highlight">0</span></p>
+<p>神兽挑战次数: <span id="boss-battles" class="highlight">0</span></p>
+<p>胜率: <span id="win-rate" class="highlight">0%</span></p>
+<p>神话装备: <span id="mythic-count" class="highlight">0</span></p>
+</div>
+
+<div class="max-w-5xl mx-auto flex flex-col md:flex-row gap-6">
+
+<!-- 游戏容器 -->
+<div class="w-full max-w-md mx-auto bg-slate-900/80 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden border border-primary/30">
+
+<!-- 游戏标题栏 -->
+<div class="bg-primary/20 border-b border-primary/30 p-4 flex justify-between items-center">
+<h1 class="text-xl font-bold text-white flex items-center">
+<i class="fa fa-gamepad mr-2 text-accent"></i>
+修仙挂机
+</h1>
+<div class="text-sm text-slate-300 flex items-center">
+<span id="realm-display" class="text-mortal mr-2">凡人境 · 初期</span>
+<i class="fa fa-trophy text-accent"></i>
+</div>
+</div>
+
+<!-- 主要内容区 -->
+<div class="p-6">
+<!-- 头像与飞升按钮区域 -->
+<div class="flex flex-col items-center mb-8">
+<div class="relative mb-4">
+<!-- 头像框 -->
+<div id="avatar-frame" class="w-36 h-36 rounded-full bg-gradient-to-r from-primary to-purple-400 p-1 glow">
+<div class="w-full h-full rounded-full overflow-hidden bg-slate-800">
+<img src="https://picsum.photos/id/64/200/200" alt="凡人境修仙者头像，穿着朴素的修行者" class="w-full h-full object-cover" id="player-avatar">
+</div>
+</div>
+<!-- 等级徽章 -->
+<div id="level-badge" class="absolute -bottom-2 -right-2 bg-accent text-dark rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg border-4 border-slate-900">
+1
+</div>
+<!-- 阶段徽章 -->
+<div id="stage-badge" class="absolute -top-2 -left-2 bg-primary text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-sm border-4 border-slate-900">
+1
+</div>
+<!-- 飞升按钮（默认隐藏） -->
+<button id="ascend-button" class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/3 bg-secondary hover:bg-green-500 text-white rounded-full w-16 h-16 flex items-center justify-center font-bold text-xs border-4 border-slate-900 shadow-lg opacity-0 pointer-events-none transition-all duration-300 hover:scale-110">
+<i class="fa fa-rocket block mb-1"></i>
+突破
+</button>
+</div>
+
+<h2 class="text-xl font-semibold text-white">修仙者</h2>
+<p class="text-slate-400 text-sm">修炼提升境界，突破自我极限</p>
+</div>
+
+<!-- 经验条 -->
+<div class="mb-6">
+<div class="flex justify-between mb-1">
+<span class="text-sm text-slate-300">经验值</span>
+<div class="flex items-center">
+<span id="exp-text" class="text-sm font-medium text-secondary mr-2">0 / 100</span>
+<span id="exp-rate" class="text-xs text-slate-400 flex items-center">
+<i class="fa fa-clock-o mr-1"></i>
+<span>0.5/秒</span>
+</div>
+</div>
+</div>
+<div class="h-4 bg-slate-700 rounded-full overflow-hidden">
+<div id="exp-bar" class="h-full bg-gradient-to-r from-secondary to-emerald-400 w-0 transition-all duration-300"></div>
+</div>
+</div>
+
+<!-- 修炼进度条 -->
+<div class="mb-6">
+<div class="flex justify-between mb-1">
+<span class="text-sm text-slate-300">修炼进度</span>
+<span id="stage-text" class="text-sm font-medium text-accent">0 / 1000</span>
+</div>
+
+<!-- 阶段进度条或突破按钮 -->
+<div id="stage-progress-container">
+<div class="h-4 bg-slate-700 rounded-full overflow-hidden">
+<div id="stage-bar" class="h-full bg-gradient-to-r from-accent to-amber-400 w-0 transition-all duration-300"></div>
+</div>
+</div>
+
+<p class="text-xs text-slate-400 mt-1">达到100%可提升至下一阶段</p>
+</div>
+
+<!-- 修仙属性面板 -->
+<div class="bg-gradient-to-r from-purple-900/40 to-blue-900/40 rounded-lg p-4 mb-6 border border-purple-700/50 grid grid-cols-2 sm:grid-cols-3 gap-3 text-center">
+<div>
+<p class="text-xs text-purple-300">灵气</p>
+<p id="player-spiritual-power" class="font-medium text-purple-400">0</p>
+</div>
+<div>
+<p class="text-xs text-blue-300">道基</p>
+<p id="player-dao-foundation" class="font-medium text-blue-400">0</p>
+</div>
+<div>
+<p class="text-xs text-indigo-300">神魂</p>
+<p id="player-soul-power" class="font-medium text-indigo-400">0</p>
+</div>
+<div>
+<p class="text-xs text-amber-300">悟性</p>
+<p id="player-comprehension" class="font-medium text-amber-400">0</p>
+</div>
+<div>
+<p class="text-xs text-pink-300">机缘</p>
+<p id="player-luck" class="font-medium text-pink-400">0</p>
+</div>
+<div>
+<p class="text-xs text-green-300">灵力恢复</p>
+<p id="magic-regeneration" class="font-medium text-green-400">0.1/秒</p>
+</div>
+</div>
+
+<!-- 战斗力面板 -->
+<div class="bg-gradient-to-r from-red-900/40 to-orange-900/40 rounded-lg p-4 mb-6 border border-red-700/50">
+<h3 class="text-sm font-semibold text-white mb-3 flex items-center">
+<i class="fa fa-sword text-red-400 mr-2"></i>战斗力统计
+</h3>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+<div>
+<p class="text-xs text-red-300">攻击力</p>
+<p id="total-attack" class="font-medium text-red-400">0</p>
+</div>
+<div>
+<p class="text-xs text-blue-300">防御力</p>
+<p id="total-defense" class="font-medium text-blue-400">0</p>
+</div>
+<div>
+<p class="text-xs text-purple-300">法术力</p>
+<p id="total-magic" class="font-medium text-purple-400">0</p>
+</div>
+<div>
+<p class="text-xs text-accent">总战力</p>
+<p id="total-power" class="font-medium text-accent">0</p>
+</div>
+</div>
+</div>
+
+<!-- 操作按钮区 -->
+<div class="grid grid-cols-2 gap-3 mb-6">
+<button id="exp-button" class="py-4 bg-accent hover:bg-amber-500 text-dark font-bold rounded-xl transition-all duration-300 flex items-center justify-center text-sm transform hover:scale-105">
+<i class="fa fa-plus-circle mr-1.5"></i>获得经验
+</button>
+
+<button id="inventory-button" class="py-4 bg-inventory hover:bg-indigo-500 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center text-sm transform hover:scale-105">
+<i class="fa fa-briefcase mr-1.5"></i>背包
+</button>
+
+<button id="equipment-button" class="py-4 bg-equipment hover:bg-purple-500 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center text-sm transform hover:scale-105">
+<i class="fa fa-shield mr-1.5"></i>装备
+</button>
+
+<button id="spells-button" class="py-4 bg-magic hover:bg-pink-500 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center text-sm transform hover:scale-105">
+<i class="fa fa-book mr-1.5"></i>法术
+</button>
+
+<!-- 打坐修炼按钮 -->
+<button id="meditate-button" class="py-4 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center text-sm col-span-1 sm:col-span-2 transform hover:scale-105">
+<i class="fa fa-moon-o mr-1.5"></i>
+<span id="meditation-text">打坐修炼</span>
+<span id="meditation-countdown" class="countdown ml-2 hidden"></span>
+</button>
+
+<!-- 挑战妖兽按钮 -->
+<button id="battle-button" class="py-4 bg-battle hover:bg-red-500 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center text-sm col-span-1 sm:col-span-2 transform hover:scale-105">
+<i class="fa fa-crosshairs mr-1.5"></i>挑战妖兽
+</button>
+
+<!-- 神兽挑战按钮（默认隐藏） -->
+<button id="boss-challenge-button" class="py-4 boss-challenge-btn text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center text-sm col-span-1 sm:col-span-2 transform hover:scale-105 hidden">
+<i class="fa fa-dragon mr-1.5"></i>
+挑战神兽 (每100次战斗开启)
+</button>
+</div>
+</div>
+
+<!-- 底部信息 -->
+<div class="bg-slate-900/80 border-t border-slate-700 p-3 text-center text-xs text-slate-500">
+<p>修仙挂机 V7.3 - 系统联动升级 | 修复版 V3.0</p>
+</div>
+</div>
+</div>
+
+<!-- 弹窗和其他UI元素 -->
+<!-- 升级提示弹窗 -->
+<div id="level-up-popup" class="fixed top-1/4 left-1/2 transform -translate-x-1/2 bg-accent text-dark px-8 py-4 rounded-xl font-bold text-2xl shadow-2xl opacity-0 pointer-events-none transition-all duration-500">
+升级了！
+</div>
+
+<!-- 阶段提升提示弹窗 -->
+<div id="stage-up-popup" class="fixed top-1/4 left-1/2 transform -translate-x-1/2 bg-primary text-white px-8 py-4 rounded-xl font-bold text-2xl shadow-2xl opacity-0 pointer-events-none transition-all duration-500">
+阶段提升！
+</div>
+
+<!-- 装备提示弹窗 -->
+<div id="equip-popup" class="fixed top-1/4 left-1/2 transform -translate-x-1/2 bg-equipment text-white px-6 py-3 rounded-xl font-bold text-lg shadow-2xl opacity-0 pointer-events-none transition-all duration-500">
+装备成功！
+</div>
+
+<!-- 战斗结果提示弹窗 -->
+<div id="battle-result-popup" class="fixed top-1/4 left-1/2 transform -translate-x-1/2 bg-battle text-white px-8 py-4 rounded-xl font-bold text-xl shadow-2xl opacity-0 pointer-events-none transition-all duration-500 text-center">
+<p id="battle-result-text">战斗胜利！</p>
+<p class="text-sm mt-2 font-normal" id="battle-reward-text">获得100经验</p>
+</div>
+
+<!-- 飞升提示弹窗 -->
+<div id="ascend-success-popup" class="fixed top-1/3 left-1/2 transform -translate-x-1/2 bg-secondary text-white px-8 py-6 rounded-xl font-bold text-2xl shadow-2xl opacity-0 pointer-events-none transition-all duration-1000 text-center">
+<i class="fa fa-rocket text-4xl mb-3 animate-bounce"></i>
+<p>恭喜突破境界！</p>
+<p class="text-lg mt-2 font-normal">已晋升至 <span id="new-realm-text">筑基境</span></p>
+</div>
+
+<!-- 神话装备获得提示 -->
+<div id="mythic-popup" class="fixed top-1/3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-mythic to-orange-500 text-white px-8 py-6 rounded-xl font-bold text-2xl shadow-2xl opacity-0 pointer-events-none transition-all duration-1000 text-center mythic-glow">
+<i class="fa fa-star text-4xl mb-3 animate-pulse"></i>
+<p>获得神话装备！</p>
+<p class="text-lg mt-2 font-normal">装备已自动激活</p>
+</div>
+
+<!-- 大境界突破确认弹窗 -->
+<div id="ascend-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 items-center justify-center hidden">
+<div class="bg-slate-900 rounded-2xl border border-secondary/50 shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden">
+<div class="bg-secondary/20 border-b border-secondary/30 p-4 flex justify-between items-center">
+<h2 class="text-xl font-bold text-white flex items-center">
+<i class="fa fa-rocket text-secondary mr-2"></i>境界突破
+</h2>
+<button id="close-ascend" class="text-slate-300 hover:text-white transition-colors">
+<i class="fa fa-times text-xl"></i>
+</button>
+</div>
+
+<div class="p-6">
+<div class="text-center mb-6">
+<h3 class="text-xl font-bold mb-2">准备突破至 <span id="next-realm-text" class="text-foundation">筑基境</span></h3>
+<p class="text-slate-400">突破大境界需要满足以下条件</p>
+</div>
+
+<div class="space-y-4 mb-6">
+<div class="bg-slate-800/50 rounded-lg p-3 border border-slate-700">
+<div class="flex justify-between items-center mb-1">
+<span class="text-sm">等级要求</span>
+<span id="ascend-level" class="text-sm font-medium">20级</span>
+</div>
+<div class="h-2 bg-slate-700 rounded-full overflow-hidden">
+<div id="ascend-level-bar" class="h-full bg-accent w-0 transition-all duration-300"></div>
+</div>
+</div>
+
+<div class="bg-slate-800/50 rounded-lg p-3 border border-slate-700">
+<div class="flex justify-between items-center mb-1">
+<span class="text-sm">阶段要求</span>
+<span id="ascend-stage" class="text-sm font-medium">10/10</span>
+</div>
+<div class="h-2 bg-slate-700 rounded-full overflow-hidden">
+<div id="ascend-stage-bar" class="h-full bg-primary w-0 transition-all duration-300"></div>
+</div>
+</div>
+
+<div class="bg-slate-800/50 rounded-lg p-3 border border-slate-700">
+<div class="flex justify-between items-center mb-1">
+<span class="text-sm">灵气要求</span>
+<span id="ascend-spiritual" class="text-sm font-medium">50点</span>
+</div>
+<div class="h-2 bg-slate-700 rounded-full overflow-hidden">
+<div id="ascend-spiritual-bar" class="h-full bg-purple-500 w-0 transition-all duration-300"></div>
+</div>
+</div>
+
+<div class="bg-slate-800/50 rounded-lg p-3 border border-slate-700">
+<div class="flex justify-between items-center mb-1">
+<span class="text-sm">道基要求</span>
+<span id="ascend-dao" class="text-sm font-medium">30点</span>
+</div>
+<div class="h-2 bg-slate-700 rounded-full overflow-hidden">
+<div id="ascend-dao-bar" class="h-full bg-blue-500 w-0 transition-all duration-300"></div>
+</div>
+</div>
+
+<!-- 突破丹要求 -->
+<div class="bg-slate-800/50 rounded-lg p-3 border border-slate-700">
+<div class="flex justify-between items-center mb-1">
+<span class="text-sm">突破丹</span>
+<span id="ascend-item" class="text-sm font-medium">1/1</span>
+</div>
+<div class="h-2 bg-slate-700 rounded-full overflow-hidden">
+<div id="ascend-item-bar" class="h-full bg-secondary w-0 transition-all duration-300"></div>
+</div>
+<p class="text-xs text-slate-400 mt-1">击败妖兽有概率获得</p>
+</div>
+</div>
+
+<div class="bg-gradient-to-r from-secondary/20 to-green-900/20 rounded-lg p-4 border border-secondary/30 mb-6">
+<h4 class="font-medium flex items-center text-secondary mb-2">
+<i class="fa fa-gift mr-2"></i>突破奖励
+</h4>
+<ul class="space-y-1 text-sm text-slate-300">
+<li><i class="fa fa-check text-secondary mr-1"></i>全属性提升50%</li>
+<li><i class="fa fa-check text-secondary mr-1"></i>解锁新法术：<span id="ascend-spell-reward" class="text-epic">筑基神雷</span></li>
+<li><i class="fa fa-check text-secondary mr-1"></i>灵气恢复速度翻倍</li>
+<li><i class="fa fa-check text-secondary mr-1"></i>开放新区域与更强妖兽</li>
+</ul>
+</div>
+
+<div class="flex gap-3">
+<button id="cancel-ascend" class="flex-1 py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl transition-all duration-300">
+取消
+</button>
+
+<button id="confirm-ascend" class="flex-1 py-3 bg-secondary hover:bg-green-500 text-white font-bold rounded-xl transition-all duration-300">
+确认突破
+</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- 背包弹窗 -->
+<div id="inventory-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 items-center justify-center hidden">
+<div class="bg-slate-900 rounded-2xl border border-inventory/50 shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+<div class="bg-inventory/20 border-b border-inventory/30 p-4 flex justify-between items-center">
+<h2 class="text-xl font-bold text-white flex items-center">
+<i class="fa fa-briefcase text-inventory mr-2"></i>背包
+</h2>
+<div class="flex items-center gap-2">
+<span class="text-sm text-slate-300">
+物品: <span id="inventory-count">0</span>/50
+</span>
+<button id="close-inventory" class="text-slate-300 hover:text-white transition-colors">
+<i class="fa fa-times text-xl"></i>
+</button>
+</div>
+</div>
+
+<div class="p-6 overflow-y-auto max-h-[calc(90vh-100px)]">
+<div class="flex flex-wrap gap-2 mb-6">
+<button class="category-pill category-pill-active px-3 py-1 rounded-full text-sm" data-category="all">全部物品</button>
+<button class="category-pill bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-full text-sm" data-category="exp">经验道具</button>
+<button class="category-pill bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-full text-sm" data-category="boost">增益道具</button>
+<button class="category-pill bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-full text-sm" data-category="spell">法术秘籍</button>
+<button class="category-pill bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-full text-sm" data-category="material">材料</button>
+<button class="category-pill bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-full text-sm" data-category="breakthrough">突破道具</button>
+<button class="category-pill bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-full text-sm" data-category="equipment">装备</button>
+<button class="category-pill bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-full text-sm" data-category="mythic">神话装备</button>
+</div>
+
+<div id="items-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+<div class="col-span-full text-center text-slate-500 py-8">
+背包是空的，快去获取物品吧！
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- 装备弹窗 -->
+<div id="equipment-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 items-center justify-center hidden">
+<div class="bg-slate-900 rounded-2xl border border-equipment/50 shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden">
+<div class="bg-equipment/20 border-b border-equipment/30 p-4 flex justify-between items-center">
+<h2 class="text-xl font-bold text-white flex items-center">
+<i class="fa fa-shield text-equipment mr-2"></i>装备
+</h2>
+<button id="close-equipment" class="text-slate-300 hover:text-white transition-colors">
+<i class="fa fa-times text-xl"></i>
+</button>
+</div>
+
+<div class="p-6 overflow-y-auto max-h-[calc(90vh-100px)]">
+<!-- 已装备区域 -->
+<div class="mb-8">
+<h3 class="text-lg font-semibold mb-4 flex items-center">
+<i class="fa fa-user text-equipment mr-2"></i>已装备
+</h3>
+
+<!-- 武器装备区 -->
+<div class="mb-6">
+<h4 class="text-sm font-medium text-slate-300 mb-3">武器</h4>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div id="equipped-weapon-main" class="equipment-slot bg-slate-800/50 rounded-lg p-3 border border-slate-700 text-center hover:border-equipment transition-all relative">
+<p class="text-xs text-slate-400">主手武器</p>
+<i class="fa fa-sword text-2xl my-2 text-slate-500"></i>
+<p class="text-sm text-slate-500">未装备</p>
+</div>
+
+<div id="equipped-weapon-off" class="equipment-slot bg-slate-800/50 rounded-lg p-3 border border-slate-700 text-center hover:border-equipment transition-all relative">
+<p class="text-xs text-slate-400">副手武器</p>
+<i class="fa fa-dagger text-2xl my-2 text-slate-500"></i>
+<p class="text-sm text-slate-500">未装备</p>
+</div>
+</div>
+</div>
+
+<!-- 防具装备区 -->
+<div class="mb-6">
+<h4 class="text-sm font-medium text-slate-300 mb-3">防具</h4>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<div id="equipped-armor" class="equipment-slot bg-slate-800/50 rounded-lg p-3 border border-slate-700 text-center hover:border-equipment transition-all">
+<p class="text-xs text-slate-400">护甲</p>
+<i class="fa fa-shield text-2xl my-2 text-slate-500"></i>
+<p class="text-sm text-slate-500">未装备</p>
+</div>
+
+<div id="equipped-shoulder" class="equipment-slot bg-slate-800/50 rounded-lg p-3 border border-slate-700 text-center hover:border-equipment transition-all">
+<p class="text-xs text-slate-400">肩甲</p>
+<i class="fa fa-shield text-2xl my-2 text-slate-500 fa-rotate-45"></i>
+<p class="text-sm text-slate-500">未装备</p>
+</div>
+
+<div id="equipped-cape" class="equipment-slot bg-slate-800/50 rounded-lg p-3 border border-slate-700 text-center hover:border-equipment transition-all">
+<p class="text-xs text-slate-400">披风</p>
+<i class="fa fa-flag text-2xl my-2 text-slate-500"></i>
+<p class="text-sm text-slate-500">未装备</p>
+</div>
+
+<div id="equipped-head" class="equipment-slot bg-slate-800/50 rounded-lg p-3 border border-slate-700 text-center hover:border-equipment transition-all">
+<p class="text-xs text-slate-400">头饰</p>
+<i class="fa fa-user-circle text-2xl my-2 text-slate-500"></i>
+<p class="text-sm text-slate-500">未装备</p>
+</div>
+</div>
+</div>
+
+<!-- 饰品装备区 -->
+<div class="mb-6">
+<h4 class="text-sm font-medium text-slate-300 mb-3">饰品</h4>
+<div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+<div id="equipped-ring1" class="equipment-slot bg-slate-800/50 rounded-lg p-3 border border-slate-700 text-center hover:border-equipment transition-all">
+<p class="text-xs text-slate-400">戒指 (左)</p>
+<i class="fa fa-diamond text-2xl my-2 text-slate-500"></i>
+<p class="text-sm text-slate-500">未装备</p>
+</div>
+
+<div id="equipped-ring2" class="equipment-slot bg-slate-800/50 rounded-lg p-3 border border-slate-700 text-center hover:border-equipment transition-all">
+<p class="text-xs text-slate-400">戒指 (右)</p>
+<i class="fa fa-diamond text-2xl my-2 text-slate-500"></i>
+<p class="text-sm text-slate-500">未装备</p>
+</div>
+
+<div id="equipped-amulet" class="equipment-slot bg-slate-800/50 rounded-lg p-3 border border-slate-700 text-center hover:border-equipment transition-all">
+<p class="text-xs text-slate-400">护符</p>
+<i class="fa fa-cross text-2xl my-2 text-slate-500"></i>
+<p class="text-sm text-slate-500">未装备</p>
+</div>
+</div>
+</div>
+
+<!-- 神话装备激活区 -->
+<div class="mb-6">
+<h4 class="text-sm font-medium text-slate-300 mb-3 flex items-center">
+<i class="fa fa-star text-mythic mr-2"></i>激活的神话装备
+</h4>
+<div id="activated-mythic-equipment" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+<div class="col-span-full text-center text-slate-500 py-4">
+尚未激活任何神话装备
+</div>
+</div>
+</div>
+
+<div class="bg-slate-800/30 rounded-lg p-3 border border-slate-700">
+<h4 class="text-sm font-medium mb-2">装备总加成</h4>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+<div><span class="text-slate-400">攻击:</span> <span id="total-attack" class="text-red-400">0</span></div>
+<div><span class="text-slate-400">防御:</span> <span id="total-defense" class="text-blue-400">0</span></div>
+<div><span class="text-slate-400">灵气:</span> <span id="total-spiritual" class="text-purple-400">0</span></div>
+<div><span class="text-slate-400">道基:</span> <span id="total-dao" class="text-blue-400">0</span></div>
+</div>
+</div>
+</div>
+
+<!-- 装备背包 -->
+<div>
+<h3 class="text-lg font-semibold mb-4 flex items-center">
+<i class="fa fa-box text-equipment mr-2"></i>装备背包
+</h3>
+
+<div class="flex flex-wrap gap-2 mb-4">
+<button class="equip-filter-btn bg-equipment/20 text-white px-3 py-1 rounded-full text-sm" data-filter="all">全部装备</button>
+<button class="equip-filter-btn bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-full text-sm" data-filter="weapon">武器</button>
+<button class="equip-filter-btn bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-full text-sm" data-filter="armor">防具</button>
+<button class="equip-filter-btn bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-full text-sm" data-filter="accessory">饰品</button>
+<button class="equip-filter-btn bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-full text-sm" data-filter="mythic">神话装备</button>
+</div>
+
+<div id="equipment-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+<div class="col-span-full text-center text-slate-500 py-8">
+没有可用装备，快去获取吧！
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="spells-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 items-center justify-center hidden">
+<div class="bg-slate-900 rounded-2xl border border-magic/50 shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+<div class="bg-magic/20 border-b border-magic/30 p-4 flex justify-between items-center">
+<h2 class="text-xl font-bold text-white flex items-center">
+<i class="fa fa-book text-magic mr-2"></i>法术
+</h2>
+<button id="close-spells" class="text-slate-300 hover:text-white transition-colors">
+<i class="fa fa-times text-xl"></i>
+</button>
+</div>
+
+<div class="p-6 overflow-y-auto max-h-[calc(90vh-100px)]">
+<div class="flex justify-between items-center mb-4">
+<h3 class="text-sm font-semibold">已学会的法术</h3>
+<div class="flex items-center gap-2">
+<span class="text-xs text-slate-400">筛选:</span>
+<select id="filter-spells" class="bg-slate-800 border border-slate-700 rounded-lg text-sm px-2 py-1">
+<option value="all">全部法术</option>
+<option value="attack">攻击型</option>
+<option value="defense">防御型</option>
+<option value="support">辅助型</option>
+</select>
+</div>
+</div>
+
+<div id="spells-container" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+<div class="col-span-full text-center text-slate-500 py-8">
+尚未学会任何法术，快去寻找法术秘籍吧！
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="battle-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 items-center justify-center hidden">
+<div class="bg-slate-900 rounded-2xl border border-battle/50 shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+<div class="bg-battle/20 border-b border-battle/30 p-4 flex justify-between items-center">
+<h2 class="text-xl font-bold text-white flex items-center">
+<i class="fa fa-fire text-battle mr-2"></i>妖兽挑战
+</h2>
+<button id="close-battle" class="text-slate-300 hover:text-white transition-colors">
+<i class="fa fa-times text-xl"></i>
+</button>
+</div>
+
+<div class="p-6 overflow-y-auto max-h-[calc(90vh-100px)]">
+<div id="battle-preparation" class="block">
+<h3 class="text-lg font-semibold mb-6 text-center">选择要挑战的妖兽</h3>
+
+<div class="space-y-4 mb-6">
+<!-- 低级妖兽 -->
+<div class="bg-slate-800/50 rounded-lg p-4 border border-slate-700 hover:border-battle/50 transition-all cursor-pointer battle-monster" data-monster="1">
+<div class="flex items-center">
+<div class="w-16 h-16 rounded-full overflow-hidden bg-slate-700 mr-4">
+<img src="https://picsum.photos/id/237/200/200" alt="低级妖兽：野狼，看起来比较弱小但很凶猛" class="w-full h-full object-cover">
+</div>
+<div class="flex-1">
+<h4 class="font-medium text-white">野狼</h4>
+<p class="text-sm text-slate-400">等级: 5 | 难度: 低</p>
+<div class="mt-2">
+<div class="flex justify-between text-xs mb-1">
+<span>生命值</span>
+<span>200</span>
+</div>
+<div class="battle-hp-bar bg-slate-700">
+<div class="h-full bg-red-500 w-full"></div>
+</div>
+</div>
+</div>
+<div class="ml-4 text-right">
+<p class="text-xs text-slate-400">奖励</p>
+<p class="text-sm font-medium text-secondary">经验: 100</p>
+<p class="text-sm font-medium text-accent">灵石: 20</p>
+<p class="text-xs text-secondary">装备掉落: 20%</p>
+<p class="text-xs text-secondary">突破丹: 0.8%</p>
+</div>
+</div>
+</div>
+
+<!-- 中级妖兽 -->
+<div class="bg-slate-800/50 rounded-lg p-4 border border-slate-700 hover:border-battle/50 transition-all cursor-pointer battle-monster" data-monster="2">
+<div class="flex items-center">
+<div class="w-16 h-16 rounded-full overflow-hidden bg-slate-700 mr-4">
+<img src="https://picsum.photos/id/1000/200/200" alt="中级妖兽：黑熊，体型庞大，力量强大" class="w-full h-full object-cover">
+</div>
+<div class="flex-1">
+<h4 class="font-medium text-white">黑熊</h4>
+<p class="text-sm text-slate-400">等级: 15 | 难度: 中</p>
+<div class="mt-2">
+<div class="flex justify-between text-xs mb-1">
+<span>生命值</span>
+<span>500</span>
+</div>
+<div class="battle-hp-bar bg-slate-700">
+<div class="h-full bg-red-500 w-full"></div>
+</div>
+</div>
+</div>
+<div class="ml-4 text-right">
+<p class="text-xs text-slate-400">奖励</p>
+<p class="text-sm font-medium text-secondary">经验: 300</p>
+<p class="text-sm font-medium text-accent">灵石: 50</p>
+<p class="text-xs text-secondary">装备掉落: 20%</p>
+<p class="text-xs text-secondary">突破丹: 1.2%</p>
+</div>
+</div>
+</div>
+
+<!-- 高级妖兽 -->
+<div class="bg-slate-800/50 rounded-lg p-4 border border-slate-700 hover:border-battle/50 transition-all cursor-pointer battle-monster" data-monster="3" disabled>
+<div class="flex items-center">
+<div class="w-16 h-16 rounded-full overflow-hidden bg-slate-700 mr-4 opacity-50">
+<img src="https://picsum.photos/id/1002/200/200" alt="高级妖兽：猛虎，需要筑基境才能挑战" class="w-full h-full object-cover">
+</div>
+<div class="flex-1">
+<h4 class="font-medium text-white opacity-50">猛虎</h4>
+<p class="text-sm text-slate-400">等级: 30 | 难度: 高</p>
+<p class="text-xs text-debug mt-1">需要筑基境才能挑战</p>
+<div class="mt-2">
+<div class="flex justify-between text-xs mb-1">
+<span>生命值</span>
+<span>1000</span>
+</div>
+<div class="battle-hp-bar bg-slate-700">
+<div class="h-full bg-red-500 w-full"></div>
+</div>
+</div>
+</div>
+<div class="ml-4 text-right">
+<p class="text-xs text-slate-400">奖励</p>
+<p class="text-sm font-medium text-secondary">经验: 800</p>
+<p class="text-sm font-medium text-accent">灵石: 150</p>
+<p class="text-xs text-secondary">装备掉落: 20%</p>
+<p class="text-xs text-secondary">突破丹: 2.0%</p>
+</div>
+</div>
+</div>
+</div>
+
+<!-- 神兽挑战（默认隐藏） -->
+<div id="boss-challenge-panel" class="bg-gradient-to-r from-mythic/20 to-orange-900/20 rounded-lg p-4 border border-mythic/50 hidden">
+<div class="text-center">
+<h4 class="font-medium text-mythic mb-2 flex items-center justify-center">
+<i class="fa fa-dragon mr-2"></i>神兽挑战
+</h4>
+<p class="text-sm text-slate-400 mb-3">每挑战100次妖兽可开启一次</p>
+<button id="start-boss-challenge" class="boss-challenge-btn text-white font-bold py-3 px-6 rounded-xl transition-all duration-300">
+<i class="fa fa-dragon mr-2"></i>挑战神兽
+</button>
+</div>
+</div>
+</div>
+
+<!-- 战斗场景 -->
+<div id="battle-scene" class="hidden">
+<div class="text-center mb-6">
+<h3 class="text-lg font-semibold" id="battle-monster-name">与野狼战斗中</h3>
+<p class="text-sm text-slate-400" id="battle-message">战斗开始！</p>
+</div>
+
+<!-- 玩家状态 -->
+<div class="mb-6">
+<div class="flex justify-between items-center mb-2">
+<div class="flex items-center">
+<div class="w-10 h-10 rounded-full overflow-hidden mr-2">
+<img src="https://picsum.photos/id/64/200/200" alt="玩家头像" class="w-full h-full object-cover">
+</div>
+<span class="font-medium">修仙者</span>
+</div>
+<div class="flex gap-2">
+<span id="player-hp-text" class="text-sm">100/100</span>
+<span id="player-mp-text" class="text-sm text-blue-400">100/100</span>
+</div>
+</div>
+<div class="battle-hp-bar bg-slate-700">
+<div id="player-hp-bar" class="h-full bg-green-500 w-full"></div>
+</div>
+<div class="battle-hp-bar bg-slate-700 mt-1">
+<div id="player-mp-bar" class="h-full bg-blue-500 w-full"></div>
+</div>
+</div>
+
+<!-- 妖兽状态 -->
+<div class="mb-6">
+<div class="flex justify-between items-center mb-2">
+<div class="flex items-center">
+<div class="w-10 h-10 rounded-full overflow-hidden mr-2" id="battle-monster-image-container">
+<img src="https://picsum.photos/id/237/200/200" alt="妖兽头像" class="w-full h-full object-cover" id="battle-monster-image">
+</div>
+<span class="font-medium" id="battle-monster-display-name">野狼</span>
+</div>
+<span id="monster-hp-text" class="text-sm">200/200</span>
+</div>
+<div class="battle-hp-bar bg-slate-700">
+<div id="monster-hp-bar" class="h-full bg-red-500 w-full"></div>
+</div>
+</div>
+
+<!-- 战斗日志 -->
+<div class="bg-slate-800/50 rounded-lg p-3 border border-slate-700 mb-6 h-32 overflow-y-auto text-sm" id="battle-log">
+<p class="text-slate-400">战斗开始！</p>
+</div>
+
+<!-- 战斗按钮 -->
+<div class="grid grid-cols-2 gap-3">
+<button id="attack-button" class="py-3 bg-battle hover:bg-red-500 text-white font-bold rounded-xl transition-all duration-300">
+<i class="fa fa-hand-paper-o mr-2"></i>普通攻击
+</button>
+<div class="relative">
+<button id="spell-button" class="py-3 bg-magic hover:bg-pink-500 text-white font-bold rounded-xl transition-all duration-300 w-full">
+<i class="fa fa-bolt mr-2"></i>使用法术
+</button>
+<div id="spell-selector" class="spell-selector hidden"></div>
+</div>
+<button id="defend-button" class="py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all duration-300">
+<i class="fa fa-shield mr-2"></i>防御
+</button>
+<button id="flee-button" class="py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl transition-all duration-300">
+<i class="fa fa-sign-out mr-2"></i>逃跑
+</button>
+</div>
+</div>
+
+<!-- 神兽战斗场景 -->
+<div id="boss-battle-scene" class="hidden">
+<div class="text-center mb-6">
+<div class="mythic-glow inline-block p-4 rounded-full mb-4">
+<i class="fa fa-dragon text-6xl text-mythic"></i>
+</div>
+<h3 class="text-2xl font-bold text-mythic mb-2">神兽挑战</h3>
+<p class="text-lg font-semibold" id="boss-name">青龙</p>
+<p class="text-sm text-slate-400" id="boss-message">传说中的神兽出现了！</p>
+</div>
+
+<!-- 玩家状态 -->
+<div class="mb-6">
+<div class="flex justify-between items-center mb-2">
+<div class="flex items-center">
+<div class="w-10 h-10 rounded-full overflow-hidden mr-2">
+<img src="https://picsum.photos/id/64/200/200" alt="玩家头像" class="w-full h-full object-cover">
+</div>
+<span class="font-medium">修仙者</span>
+</div>
+<div class="flex gap-2">
+<span id="boss-player-hp-text" class="text-sm">100/100</span>
+<span id="boss-player-mp-text" class="text-sm text-blue-400">100/100</span>
+</div>
+</div>
+<div class="battle-hp-bar bg-slate-700">
+<div id="boss-player-hp-bar" class="h-full bg-green-500 w-full"></div>
+</div>
+<div class="battle-hp-bar bg-slate-700 mt-1">
+<div id="boss-player-mp-bar" class="h-full bg-blue-500 w-full"></div>
+</div>
+</div>
+
+<!-- 神兽状态 -->
+<div class="mb-6">
+<div class="flex justify-between items-center mb-2">
+<div class="flex items-center">
+<div class="w-12 h-12 rounded-full overflow-hidden mr-2 mythic-glow" id="boss-image-container">
+<img src="https://picsum.photos/id/1015/200/200" alt="神兽头像" class="w-full h-full object-cover" id="boss-image">
+</div>
+<span class="font-medium text-mythic" id="boss-display-name">青龙</span>
+</div>
+<span id="boss-hp-text" class="text-sm">5000/5000</span>
+</div>
+<div class="battle-hp-bar bg-slate-700">
+<div id="boss-hp-bar" class="h-full bg-gradient-to-r from-mythic to-orange-500 w-full"></div>
+</div>
+</div>
+
+<!-- 战斗日志 -->
+<div class="bg-gradient-to-r from-mythic/20 to-orange-900/20 rounded-lg p-3 border border-mythic/50 mb-6 h-32 overflow-y-auto text-sm" id="boss-battle-log">
+<p class="text-mythic">神兽降临！</p>
+</div>
+
+<!-- 战斗按钮 -->
+<div class="grid grid-cols-2 gap-3">
+<button id="boss-attack-button" class="py-3 bg-battle hover:bg-red-500 text-white font-bold rounded-xl transition-all duration-300">
+<i class="fa fa-hand-paper-o mr-2"></i>普通攻击
+</button>
+<div class="relative">
+<button id="boss-spell-button" class="py-3 bg-magic hover:bg-pink-500 text-white font-bold rounded-xl transition-all duration-300 w-full">
+<i class="fa fa-bolt mr-2"></i>使用法术
+</button>
+<div id="boss-spell-selector" class="spell-selector hidden"></div>
+</div>
+<button id="boss-defend-button" class="py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all duration-300">
+<i class="fa fa-shield mr-2"></i>防御
+</button>
+<button id="boss-flee-button" class="py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl transition-all duration-300">
+<i class="fa fa-sign-out mr-2"></i>逃跑
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- 引入核心游戏逻辑和元素管理 -->
+<script src="game-core.js"></script>
+<script src="elements.js"></script>
+<script>
+// 全局变量，确保在任何地方都能访问
+let elements = null;
+let battleInterval = null;
+let autoExpInterval = null;
+let meditationInterval = null;
+let meditationEndTime = null;
+
+// 初始化游戏 - 包装在try-catch中以捕获所有初始化错误
+function init() {
+try {
+// 重置可能的旧状态
+if (battleInterval) {
+clearInterval(battleInterval);
+battleInterval = null;
+}
+if (autoExpInterval) {
+clearInterval(autoExpInterval);
+autoExpInterval = null;
+}
+if (meditationInterval) {
+clearInterval(meditationInterval);
+meditationInterval = null;
+}
+
+// 获取DOM元素引用
+elements = ElementManager.getElements();
+
+// 添加重试按钮事件
+if (elements.retryButton) {
+elements.retryButton.addEventListener('click', () => {
+elements.errorMessage.classList.add('hidden');
+elements.retryButton.classList.add('hidden');
+initGame();
+});
+}
+
+// 开始游戏初始化
+initGame();
+} catch (error) {
+console.error("初始化过程失败:", error);
+showInitializationError("无法初始化游戏核心组件: " + error.message);
+}
+}
+
+// 显示初始化错误
+function showInitializationError(message) {
+if (elements) {
+if (elements.loadingStatus) {
+elements.loadingStatus.textContent = "初始化失败";
+elements.loadingStatus.classList.add('text-debug');
+}
+if (elements.errorMessage) {
+elements.errorMessage.textContent = message;
+elements.errorMessage.classList.remove('hidden');
+}
+if (elements.retryButton) {
+elements.retryButton.classList.remove('hidden');
+}
+} else {
+alert("游戏初始化失败: " + message + "\n请刷新页面重试");
+}
+}
+
+// 初始化游戏状态和数据
+async function initGame() {
+try {
+// 显示加载状态
+updateLoadingStatus("正在初始化灵气...");
+await delay(500);
+
+// 初始化游戏状态
+initCoreGame();
+
+updateLoadingStatus("正在构建道基...");
+await delay(500);
+
+updateLoadingStatus("正在凝聚神魂...");
+await delay(500);
+
+// 预加载图片资源
+await preloadImages();
+
+updateLoadingStatus("准备就绪...");
+await delay(300);
+
+// 安全地更新UI，先检查必要元素是否存在
+if (validateCriticalElements()) {
+updateUI();
+} else {
+throw new Error("关键UI元素缺失，无法继续初始化");
+}
+
+// 添加事件监听器
+addEventListeners();
+
+// 检查突破条件
+checkAscendCondition();
+checkStageUpCondition();
+
+// 启动自动经验获取（默认开启）
+if (!gameState.autoExp) {
+toggleAutoExp();
+}
+
+// 隐藏加载屏幕
+if (elements.loadingScreen) {
+elements.loadingScreen.classList.add('opacity-0', 'pointer-events-none');
+elements.loadingScreen.style.transition = 'opacity 0.5s ease-out';
+
+setTimeout(() => {
+if (elements.loadingScreen) {
+elements.loadingScreen.style.display = 'none';
+}
+}, 500);
+}
+
+showNotification('游戏加载完成！', 'success');
+
+} catch (error) {
+console.error("游戏初始化失败:", error);
+showInitializationError("初始化过程出错: " + error.message);
+}
+}
+
+// 验证关键UI元素是否存在
+function validateCriticalElements() {
+if (!elements) return false;
+
+const essentialElements = [
+'levelBadge', 'expBar', 'expText', 'stageBar', 'stageText',
+'spiritualPower', 'daoFoundation', 'soulPower', 'comprehension',
+'luck', 'magicRegeneration', 'realmDisplay'
+];
+
+return essentialElements.every(element => elements[element] !== null && elements[element] !== undefined);
+}
+
+// 更新加载状态
+function updateLoadingStatus(status) {
+if (elements && elements.loadingStatus) {
+elements.loadingStatus.textContent = status;
+}
+}
+
+// 延迟函数
+function delay(ms) {
+return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// 更新UI
+function updateUI() {
+try {
+// 更新等级和经验
+if (elements.levelBadge) elements.levelBadge.textContent = gameState.level;
+if (elements.expText) elements.expText.textContent = `${gameState.exp} / ${gameState.expToNextLevel}`;
+if (elements.expBar) {
+const expPercent = (gameState.exp / gameState.expToNextLevel) * 100;
+elements.expBar.style.width = `${Math.min(expPercent, 100)}%`;
+}
+if (elements.expRate) elements.expRate.textContent = `${(gameState.spiritualPower * 0.1 + 0.5).toFixed(1)}/秒`;
+
+// 更新修炼进度
+updateCultivationProgressUI();
+
+// 更新属性
+if (elements.spiritualPower) elements.spiritualPower.textContent = gameState.spiritualPower;
+if (elements.daoFoundation) elements.daoFoundation.textContent = gameState.daoFoundation;
+if (elements.soulPower) elements.soulPower.textContent = gameState.soulPower;
+if (elements.comprehension) elements.comprehension.textContent = gameState.comprehension;
+if (elements.luck) elements.luck.textContent = gameState.luck;
+if (elements.magicRegeneration) elements.magicRegeneration.textContent = `${gameState.magicRegen.toFixed(1)}/秒`;
+
+// 更新统计（移除了总获得经验和法术数量的统计）
+
+// 更新境界显示
+const currentRealm = realms[gameState.realm];
+const currentStageName = stageNames[gameState.stage - 1] || "未知";
+if (elements.realmDisplay) {
+elements.realmDisplay.textContent = `${currentRealm.name} · ${currentStageName}`;
+elements.realmDisplay.className = `text-${currentRealm.color} mr-2`;
+}
+
+// 更新头像
+if (elements.playerAvatar) {
+elements.playerAvatar.src = currentRealm.avatar;
+elements.playerAvatar.alt = currentRealm.avatarAlt;
+}
+
+// 更新战斗力统计
+updateBattlePowerStats();
+
+// 更新调试信息
+if (elements.debugLevel) elements.debugLevel.textContent = gameState.level;
+if (elements.debugRealm) elements.debugRealm.textContent = currentRealm.name;
+if (elements.debugStage) elements.debugStage.textContent = `${gameState.stage}/10`;
+if (elements.debugItemCount) elements.debugItemCount.textContent = gameState.inventory.length;
+if (elements.debugSpellCount) elements.debugSpellCount.textContent = gameState.spells.length;
+if (elements.debugAutoExp) elements.debugAutoExp.textContent = gameState.autoExp ? "开启" : "关闭";
+
+// 统计突破丹数量
+const breakthroughCount = gameState.inventory.filter(item => item.type === 'breakthrough').length;
+if (elements.debugBreakthroughCount) elements.debugBreakthroughCount.textContent = breakthroughCount;
+
+// 统计神话装备数量
+const mythicCount = gameState.inventory.filter(item => item.type === 'equipment' && item.rarity === 'mythic').length + gameState.activatedMythicEquipment.length;
+if (elements.debugMythicCount) elements.debugMythicCount.textContent = mythicCount;
+
+// 战斗次数统计
+if (elements.debugBattleCount) elements.debugBattleCount.textContent = gameState.battleCount;
+
+// 更新自动经验状态
+if (elements.autoExpStatus) {
+elements.autoExpStatus.textContent = gameState.autoExp ? "关闭自动获取" : "开启自动获取";
+}
+
+// 更新装备总加成
+updateEquipmentStats();
+
+// 更新装备显示
+updateEquipmentDisplay();
+
+// 更新背包显示
+updateInventoryDisplay();
+
+// 更新法术显示
+updateSpellsDisplay();
+
+// 更新打坐状态
+updateMeditationUI();
+
+// 更新战斗统计面板
+updateBattleStatsPanel();
+
+// 检查神兽挑战条件
+checkBossChallengeCondition();
+
+} catch (error) {
+console.error("更新UI失败:", error);
+}
+}
+
+// 更新战斗力统计
+function updateBattlePowerStats() {
+try {
+// 基础属性计算
+const baseAttack = gameState.level * 5 + (gameState.spiritualPower || 0) * 0.5;
+const baseDefense = gameState.level * 3 + (gameState.daoFoundation || 0) * 0.3;
+const baseMagic = gameState.level * 4 + (gameState.soulPower || 0) * 0.4;
+
+// 装备加成
+const equipmentAttack = gameState.totalAttack || 0;
+const equipmentDefense = gameState.totalDefense || 0;
+const equipmentMagic = gameState.totalMagic || 0;
+
+// 神话装备加成
+const mythicAttack = gameState.activatedMythicEquipment.reduce((sum, item) => sum + (item.attack || 0), 0);
+const mythicDefense = gameState.activatedMythicEquipment.reduce((sum, item) => sum + (item.defense || 0), 0);
+const mythicMagic = gameState.activatedMythicEquipment.reduce((sum, item) => sum + (item.magic || 0), 0);
+
+// 总属性
+const totalAttack = Math.floor(baseAttack + equipmentAttack + mythicAttack);
+const totalDefense = Math.floor(baseDefense + equipmentDefense + mythicDefense);
+const totalMagic = Math.floor(baseMagic + equipmentMagic + mythicMagic);
+const totalPower = totalAttack + totalDefense + totalMagic;
+
+// 更新显示
+if (elements.totalAttack) elements.totalAttack.textContent = totalAttack;
+if (elements.totalDefense) elements.totalDefense.textContent = totalDefense;
+if (elements.totalMagic) elements.totalMagic.textContent = totalMagic;
+if (elements.totalPower) elements.totalPower.textContent = totalPower;
+
+// 更新游戏状态
+gameState.totalAttack = totalAttack;
+gameState.totalDefense = totalDefense;
+gameState.totalMagic = totalMagic;
+gameState.totalPower = totalPower;
+
+} catch (error) {
+console.error("更新战斗力统计失败:", error);
+}
+}
+
+// 更新战斗统计面板
+function updateBattleStatsPanel() {
+try {
+if (elements.totalBattles) elements.totalBattles.textContent = gameState.battleCount;
+if (elements.bossBattles) elements.bossBattles.textContent = gameState.bossBattleCount;
+
+// 计算胜率
+const winRate = gameState.battleCount > 0 ? Math.round((gameState.winCount / gameState.battleCount) * 100) : 0;
+if (elements.winRate) elements.winRate.textContent = `${winRate}%`;
+
+// 神话装备数量
+const mythicCount = gameState.inventory.filter(item => item.type === 'equipment' && item.rarity === 'mythic').length + gameState.activatedMythicEquipment.length;
+if (elements.mythicCount) elements.mythicCount.textContent = mythicCount;
+
+} catch (error) {
+console.error("更新战斗统计面板失败:", error);
+}
+}
+
+// 更新修炼进度UI
+function updateCultivationProgressUI() {
+try {
+const currentRealm = realms[gameState.realm];
+const stageComplete = gameState.stageProgress >= gameState.stageRequirement;
+
+if (elements.stageText) {
+elements.stageText.textContent = `${Math.min(gameState.stageProgress, gameState.stageRequirement)} / ${gameState.stageRequirement}`;
+}
+
+// 如果是小境界（1-9阶段），进度满了自动提升
+if (gameState.stage < 10 && stageComplete) {
+// 自动提升小阶段
+stageUp();
+return;
+}
+
+// 如果是大境界突破点（10阶段），显示突破按钮
+if (gameState.stage === 10) {
+showBreakthroughButton();
+} else {
+showCultivationProgressBar();
+}
+
+} catch (error) {
+console.error("更新修炼进度UI失败:", error);
+}
+}
+
+// 显示修炼进度条
+function showCultivationProgressBar() {
+try {
+if (!elements.stageProgressContainer || !elements.stageBar) return;
+
+const progressPercent = (gameState.stageProgress / gameState.stageRequirement) * 100;
+elements.stageProgressContainer.innerHTML = `
+<div class="h-4 bg-slate-700 rounded-full overflow-hidden">
+<div id="stage-bar" class="h-full bg-gradient-to-r from-accent to-amber-400 w-[${Math.min(progressPercent, 100)}%] transition-all duration-300"></div>
+</div>
+`;
+
+} catch (error) {
+console.error("显示修炼进度条失败:", error);
+}
+}
+
+// 显示突破按钮
+function showBreakthroughButton() {
+try {
+if (!elements.stageProgressContainer) return;
+
+const currentRealm = realms[gameState.realm];
+const nextRealm = realms[gameState.realm + 1];
+const breakthroughCount = gameState.inventory.filter(item => item.type === 'breakthrough' && item.realm === gameState.realm).length;
+const hasRequiredItem = breakthroughCount >= 1;
+
+// 即使进度超过100%，也保持突破按钮显示
+elements.stageProgressContainer.innerHTML = `
+<button id="breakthrough-button" class="breakthrough-btn w-full ${!hasRequiredItem ? 'opacity-50 cursor-not-allowed' : ''}" ${!hasRequiredItem ? 'disabled' : ''}>
+<i class="fa fa-rocket mr-2"></i>
+突破至 ${nextRealm.name}
+${!hasRequiredItem ? '<span class="ml-2 text-xs">(需要突破丹)</span>' : ''}
+</button>
+`;
+
+// 添加突破按钮事件
+const breakthroughBtn = document.getElementById('breakthrough-button');
+if (breakthroughBtn && hasRequiredItem) {
+breakthroughBtn.addEventListener('click', showAscendModal);
+}
+
+} catch (error) {
+console.error("显示突破按钮失败:", error);
+}
+}
+
+// 更新装备统计
+function updateEquipmentStats() {
+try {
+let totalAttack = 0;
+let totalDefense = 0;
+let totalSpiritual = 0;
+let totalDao = 0;
+let totalMagic = 0;
+
+// 计算所有装备的加成
+Object.values(gameState.equipment).forEach(item => {
+if (item) {
+totalAttack += item.attack || 0;
+totalDefense += item.defense || 0;
+totalSpiritual += item.spiritual || 0;
+totalDao += item.dao || 0;
+totalMagic += item.magic || 0;
+}
+});
+
+// 更新显示
+if (elements.totalAttack) elements.totalAttack.textContent = totalAttack;
+if (elements.totalDefense) elements.totalDefense.textContent = totalDefense;
+if (elements.totalSpiritual) elements.totalSpiritual.textContent = totalSpiritual;
+if (elements.totalDao) elements.totalDao.textContent = totalDao;
+
+// 更新游戏状态
+gameState.totalAttack = totalAttack;
+gameState.totalDefense = totalDefense;
+gameState.totalSpiritual = totalSpiritual;
+gameState.totalDao = totalDao;
+gameState.totalMagic = totalMagic;
+
+} catch (error) {
+console.error("更新装备统计失败:", error);
+}
+}
+
+// 更新装备显示
+function updateEquipmentDisplay() {
+try {
+// 更新已装备显示
+const equipmentSlots = [
+{ element: 'equippedWeaponMain', slot: 'weaponMain', icon: 'fa-sword', name: '主手武器' },
+{ element: 'equippedWeaponOff', slot: 'weaponOff', icon: 'fa-dagger', name: '副手武器' },
+{ element: 'equippedArmor', slot: 'armor', icon: 'fa-shield', name: '护甲' },
+{ element: 'equippedShoulder', slot: 'shoulder', icon: 'fa-shield fa-rotate-45', name: '肩甲' },
+{ element: 'equippedCape', slot: 'cape', icon: 'fa-flag', name: '披风' },
+{ element: 'equippedHead', slot: 'head', icon: 'fa-user-circle', name: '头饰' },
+{ element: 'equippedRing1', slot: 'ring1', icon: 'fa-diamond', name: '戒指 (左)' },
+{ element: 'equippedRing2', slot: 'ring2', icon: 'fa-diamond', name: '戒指 (右)' },
+{ element: 'equippedAmulet', slot: 'amulet', icon: 'fa-cross', name: '护符' }
+];
+
+equipmentSlots.forEach(slotInfo => {
+const element = elements[slotInfo.element];
+const item = gameState.equipment[slotInfo.slot];
+
+if (element) {
+if (item) {
+// 有装备
+element.innerHTML = `
+<p class="text-xs text-slate-400">${slotInfo.name}</p>
+<div class="text-center my-2">
+<i class="fa ${slotInfo.icon} text-lg mb-1 text-${getRarityColor(item.rarity)}"></i>
+<p class="text-xs font-medium text-white truncate">${item.name}</p>
+</div>
+<div class="text-xs space-y-0.5">
+${item.attack ? `<p class="text-red-400">攻击: +${item.attack}</p>` : ''}
+${item.defense ? `<p class="text-blue-400">防御: +${item.defense}</p>` : ''}
+${item.spiritual ? `<p class="text-purple-400">灵气: +${item.spiritual}</p>` : ''}
+${item.dao ? `<p class="text-blue-400">道基: +${item.dao}</p>` : ''}
+${item.magic ? `<p class="text-purple-400">法术: +${item.magic}</p>` : ''}
+</div>
+<button class="unequip-btn text-xs text-debug mt-1 hover:text-red-400" data-slot="${slotInfo.slot}">
+卸下
+</button>
+`;
+element.classList.add('border-equipment');
+} else {
+// 无装备
+element.innerHTML = `
+<p class="text-xs text-slate-400">${slotInfo.name}</p>
+<i class="fa ${slotInfo.icon} text-2xl my-2 text-slate-500"></i>
+<p class="text-sm text-slate-500">未装备</p>
+`;
+element.classList.remove('border-equipment');
+}
+}
+});
+
+// 更新激活的神话装备显示
+if (elements.activatedMythicEquipment) {
+if (gameState.activatedMythicEquipment.length === 0) {
+elements.activatedMythicEquipment.innerHTML = `
+<div class="col-span-full text-center text-slate-500 py-4">
+尚未激活任何神话装备
+</div>
+`;
+} else {
+elements.activatedMythicEquipment.innerHTML = gameState.activatedMythicEquipment.map(item => `
+<div class="mythic-equipment activated-equipment bg-slate-800/50 rounded-lg p-3 border border-mythic text-center">
+<div class="text-center">
+<i class="fa fa-star text-2xl mb-2 text-mythic"></i>
+<p class="text-sm font-medium text-mythic truncate">${item.name}</p>
+<div class="text-xs space-y-0.5 mt-2">
+${item.affixes.map(affix => `<p class="text-orange-300">${affix.name}: +${affix.value}</p>`).join('')}
+</div>
+</div>
+</div>
+`).join('');
+}
+}
+
+// 更新装备背包显示
+if (elements.equipmentContainer) {
+const equipmentItems = gameState.inventory.filter(item => item.type === 'equipment');
+
+if (equipmentItems.length === 0) {
+elements.equipmentContainer.innerHTML = `
+<div class="col-span-full text-center text-slate-500 py-8">
+没有可用装备，快去获取吧！
+</div>
+`;
+} else {
+elements.equipmentContainer.innerHTML = equipmentItems.map(item => `
+<div class="equipment-item ${item.rarity === 'mythic' ? 'mythic-equipment' : 'bg-slate-800/50'} rounded-lg p-2 border ${item.rarity === 'mythic' ? 'border-mythic' : 'border-slate-700'} hover:border-equipment transition-all cursor-pointer" data-id="${item.id}">
+<div class="text-center">
+<i class="fa ${getEquipmentIcon(item.slot)} text-lg mb-1 text-${getRarityColor(item.rarity)}"></i>
+<p class="text-xs font-medium text-white truncate">${item.name}</p>
+<div class="text-xs space-y-0.5 mt-1">
+${item.attack ? `<p class="text-red-400">攻击: +${item.attack}</p>` : ''}
+${item.defense ? `<p class="text-blue-400">防御: +${item.defense}</p>` : ''}
+${item.spiritual ? `<p class="text-purple-400">灵气: +${item.spiritual}</p>` : ''}
+${item.dao ? `<p class="text-blue-400">道基: +${item.dao}</p>` : ''}
+${item.magic ? `<p class="text-purple-400">法术: +${item.magic}</p>` : ''}
+${item.rarity === 'mythic' ? `<p class="text-xs text-mythic mt-1">神话装备 (点击激活)</p>` : ''}
+</div>
+${item.rarity !== 'mythic' ? `
+<button class="equip-btn text-xs text-secondary mt-1 hover:text-green-400" data-id="${item.id}">
+装备
+</button>
+` : ''}
+</div>
+</div>
+`).join('');
+}
+}
+
+// 添加装备/卸下事件监听器
+document.querySelectorAll('.equip-btn').forEach(btn => {
+btn.addEventListener('click', (e) => {
+e.stopPropagation();
+const itemId = parseInt(e.currentTarget.dataset.id);
+const result = equipItem(itemId);
+if (result) {
+showPopup('equip-popup');
+showNotification(`装备成功！`);
+}
+});
+});
+
+document.querySelectorAll('.unequip-btn').forEach(btn => {
+btn.addEventListener('click', (e) => {
+e.stopPropagation();
+const slot = e.currentTarget.dataset.slot;
+const result = unequipItem(slot);
+if (result) {
+const item = gameState.inventory[gameState.inventory.length - 1];
+showNotification(`${item.name} 已卸下`);
+}
+});
+});
+
+// 添加神话装备激活事件
+document.querySelectorAll('.mythic-equipment').forEach(item => {
+item.addEventListener('click', (e) => {
+if (e.target.tagName === 'BUTTON') return;
+
+const itemId = parseInt(item.dataset.id);
+if (itemId) {
+const result = activateMythicEquipment(itemId);
+if (result) {
+showNotification(`成功激活神话装备！`, 'mythic');
+showPopup('mythic-popup');
+}
+}
+});
+});
+} catch (error) {
+console.error("更新装备显示失败:", error);
+}
+}
+
+// 更新背包显示
+function updateInventoryDisplay() {
+try {
+if (!elements.itemsContainer || !elements.inventoryCount) return;
+
+// 更新物品计数
+elements.inventoryCount.textContent = gameState.inventory.length;
+
+// 获取当前选中的分类
+const activeCategory = document.querySelector('.category-pill-active')?.dataset.category || 'all';
+
+// 过滤物品
+let filteredItems = gameState.inventory;
+if (activeCategory !== 'all') {
+filteredItems = gameState.inventory.filter(item => {
+if (activeCategory === 'mythic') {
+return item.type === 'equipment' && item.rarity === 'mythic';
+}
+return item.type === activeCategory;
+});
+}
+
+if (filteredItems.length === 0) {
+elements.itemsContainer.innerHTML = `
+<div class="col-span-full text-center text-slate-500 py-8">
+没有符合条件的物品
+</div>
+`;
+} else {
+elements.itemsContainer.innerHTML = filteredItems.map(item => `
+<div class="item-card bg-slate-800/50 rounded-lg p-3 border border-slate-700 hover:border-inventory transition-all cursor-pointer" data-id="${item.id}">
+<div class="text-center">
+<i class="fa ${getItemIcon(item.type)} text-lg mb-1 text-${getItemTypeColor(item.type, item.rarity)}"></i>
+<p class="text-xs font-medium text-white truncate">${item.name}</p>
+<p class="text-xs text-slate-400 mt-1">${item.description}</p>
+${item.quantity > 1 ? `<p class="text-xs text-accent absolute top-1 right-1">x${item.quantity}</p>` : ''}
+${item.type === 'equipment' ? `
+<div class="text-xs space-y-0.5 mt-1">
+${item.attack ? `<p class="text-red-400">攻击: +${item.attack}</p>` : ''}
+${item.defense ? `<p class="text-blue-400">防御: +${item.defense}</p>` : ''}
+</div>
+` : ''}
+</div>
+${item.usable ? `
+<button class="use-item-btn text-xs text-secondary mt-2 hover:text-green-400" data-id="${item.id}">
+使用
+</button>
+` : ''}
+</div>
+`).join('');
+}
+
+// 添加物品使用事件
+document.querySelectorAll('.use-item-btn').forEach(btn => {
+btn.addEventListener('click', (e) => {
+e.stopPropagation();
+const itemId = parseInt(e.currentTarget.dataset.id);
+const result = useItem(itemId);
+if (result) {
+updateInventoryDisplay();
+updateUI();
+}
+});
+});
+
+// 添加物品点击事件（装备类）
+document.querySelectorAll('.item-card').forEach(card => {
+card.addEventListener('click', (e) => {
+if (e.target.classList.contains('use-item-btn')) return;
+
+const itemId = parseInt(card.dataset.id);
+const item = gameState.inventory.find(i => i.id === itemId);
+
+if (item && item.type === 'equipment' && item.rarity !== 'mythic') {
+const result = equipItem(itemId);
+if (result) {
+showPopup('equip-popup');
+showNotification(`装备成功！`);
+}
+}
+});
+});
+
+} catch (error) {
+console.error("更新背包显示失败:", error);
+}
+}
+
+// 更新法术显示
+function updateSpellsDisplay() {
+try {
+if (!elements.spellsContainer) return;
+
+// 获取当前筛选条件
+const filter = document.getElementById('filter-spells')?.value || 'all';
+
+// 筛选法术
+let filteredSpells = gameState.spells;
+if (filter !== 'all') {
+filteredSpells = gameState.spells.filter(spell => spell.type === filter);
+}
+
+if (filteredSpells.length === 0) {
+elements.spellsContainer.innerHTML = `
+<div class="col-span-full text-center text-slate-500 py-8">
+尚未学会任何法术，快去寻找法术秘籍吧！
+</div>
+`;
+} else {
+elements.spellsContainer.innerHTML = filteredSpells.map(spell => `
+<div class="bg-slate-800/50 rounded-lg p-3 border border-magic/30 hover:border-magic transition-all">
+<div class="flex items-start">
+<div class="mr-3 text-magic">
+<i class="fa ${getSpellIcon(spell.type)} text-xl"></i>
+</div>
+<div class="flex-1">
+<h4 class="font-medium text-white text-sm">${spell.name}</h4>
+<p class="text-xs text-slate-400 mt-1">${spell.description}</p>
+<div class="flex flex-wrap gap-2 mt-2">
+<span class="text-xs bg-slate-700 px-2 py-0.5 rounded-full">消耗: ${spell.mpCost}灵力</span>
+<span class="text-xs bg-slate-700 px-2 py-0.5 rounded-full">冷却: ${spell.cooldown}秒</span>
+</div>
+</div>
+</div>
+</div>
+`).join('');
+}
+
+} catch (error) {
+console.error("更新法术显示失败:", error);
+}
+}
+
+// 更新打坐状态UI
+function updateMeditationUI() {
+try {
+if (!elements.meditateButton || !elements.meditationText || !elements.meditationCountdown) return;
+
+if (gameState.meditating) {
+elements.meditateButton.classList.add('meditation-active');
+elements.meditationText.textContent = '结束打坐';
+
+// 显示倒计时
+if (meditationEndTime) {
+const now = new Date();
+const remaining = Math.max(0, Math.ceil((meditationEndTime - now) / 1000));
+elements.meditationCountdown.textContent = formatTime(remaining);
+elements.meditationCountdown.classList.remove('hidden');
+}
+} else {
+elements.meditateButton.classList.remove('meditation-active');
+elements.meditationText.textContent = '打坐修炼';
+elements.meditationCountdown.classList.add('hidden');
+}
+
+} catch (error) {
+console.error("更新打坐状态UI失败:", error);
+}
+}
+
+// 格式化时间（秒转分秒）
+function formatTime(seconds) {
+const mins = Math.floor(seconds / 60);
+const secs = seconds % 60;
+return `${mins}:${secs < 10 ? '0' + secs : secs}`;
+}
+
+// 检查神兽挑战条件
+function checkBossChallengeCondition() {
+try {
+const bossPanel = document.getElementById('boss-challenge-panel');
+const bossButton = document.getElementById('boss-challenge-button');
+
+// 每100次战斗可挑战一次神兽
+const canChallengeBoss = gameState.battleCount > 0 && 
+(gameState.battleCount % 100 === 0) && 
+(gameState.battleCount > gameState.lastBossBattleCount * 100);
+
+if (bossPanel && bossButton) {
+if (canChallengeBoss) {
+bossPanel.classList.remove('hidden');
+} else {
+bossPanel.classList.add('hidden');
+}
+}
+
+} catch (error) {
+console.error("检查神兽挑战条件失败:", error);
+}
+}
+
+// 添加事件监听器
+function addEventListeners() {
+try {
+// 经验按钮
+if (elements.expButton) {
+elements.expButton.addEventListener('click', () => {
+gainExp(10);
+showNotification('获得10点经验！');
+});
+}
+
+// 背包按钮
+if (elements.inventoryButton) {
+elements.inventoryButton.addEventListener('click', () => {
+toggleModal('inventory-modal');
+updateInventoryDisplay();
+});
+}
+
+// 关闭背包
+if (elements.closeInventory) {
+elements.closeInventory.addEventListener('click', () => {
+toggleModal('inventory-modal');
+});
+}
+
+// 装备按钮
+if (elements.equipmentButton) {
+elements.equipmentButton.addEventListener('click', () => {
+toggleModal('equipment-modal');
+updateEquipmentDisplay();
+});
+}
+
+// 关闭装备
+if (elements.closeEquipment) {
+elements.closeEquipment.addEventListener('click', () => {
+toggleModal('equipment-modal');
+});
+}
+
+// 法术按钮
+if (elements.spellsButton) {
+elements.spellsButton.addEventListener('click', () => {
+toggleModal('spells-modal');
+updateSpellsDisplay();
+});
+}
+
+// 关闭法术
+if (elements.closeSpells) {
+elements.closeSpells.addEventListener('click', () => {
+toggleModal('spells-modal');
+});
+}
+
+// 法术筛选
+const filterSpells = document.getElementById('filter-spells');
+if (filterSpells) {
+filterSpells.addEventListener('change', updateSpellsDisplay);
+}
+
+// 打坐按钮
+if (elements.meditateButton) {
+elements.meditateButton.addEventListener('click', toggleMeditation);
+}
+
+// 战斗按钮
+if (elements.battleButton) {
+elements.battleButton.addEventListener('click', () => {
+toggleModal('battle-modal');
+document.getElementById('battle-preparation').classList.remove('hidden');
+document.getElementById('battle-scene').classList.add('hidden');
+document.getElementById('boss-battle-scene').classList.add('hidden');
+});
+}
+
+// 关闭战斗
+if (elements.closeBattle) {
+elements.closeBattle.addEventListener('click', () => {
+if (battleInterval) {
+clearInterval(battleInterval);
+battleInterval = null;
+}
+toggleModal('battle-modal');
+});
+}
+
+// 选择妖兽
+document.querySelectorAll('.battle-monster').forEach(monster => {
+// 检查是否禁用
+if (!monster.hasAttribute('disabled')) {
+monster.addEventListener('click', () => {
+const monsterId = parseInt(monster.dataset.monster);
+startBattle(monsterId);
+});
+}
+});
+
+// 开始神兽挑战
+const startBossChallenge = document.getElementById('start-boss-challenge');
+if (startBossChallenge) {
+startBossChallenge.addEventListener('click', startBossBattle);
+}
+
+// 战斗按钮 - 普通攻击
+const attackButton = document.getElementById('attack-button');
+if (attackButton) {
+attackButton.addEventListener('click', () => {
+playerAttack();
+});
+}
+
+// 战斗按钮 - 法术攻击
+const spellButton = document.getElementById('spell-button');
+if (spellButton) {
+spellButton.addEventListener('click', (e) => {
+e.stopPropagation();
+toggleSpellSelector('spell-selector');
+});
+}
+
+// 战斗按钮 - 防御
+const defendButton = document.getElementById('defend-button');
+if (defendButton) {
+defendButton.addEventListener('click', () => {
+playerDefend();
+});
+}
+
+// 战斗按钮 - 逃跑
+const fleeButton = document.getElementById('flee-button');
+if (fleeButton) {
+fleeButton.addEventListener('click', () => {
+playerFlee();
+});
+}
+
+// 神兽战斗按钮 - 普通攻击
+const bossAttackButton = document.getElementById('boss-attack-button');
+if (bossAttackButton) {
+bossAttackButton.addEventListener('click', () => {
+bossPlayerAttack();
+});
+}
+
+// 神兽战斗按钮 - 法术攻击
+const bossSpellButton = document.getElementById('boss-spell-button');
+if (bossSpellButton) {
+bossSpellButton.addEventListener('click', (e) => {
+e.stopPropagation();
+toggleSpellSelector('boss-spell-selector');
+});
+}
+
+// 神兽战斗按钮 - 防御
+const bossDefendButton = document.getElementById('boss-defend-button');
+if (bossDefendButton) {
+bossDefendButton.addEventListener('click', () => {
+bossPlayerDefend();
+});
+}
+
+// 神兽战斗按钮 - 逃跑
+const bossFleeButton = document.getElementById('boss-flee-button');
+if (bossFleeButton) {
+bossFleeButton.addEventListener('click', () => {
+bossPlayerFlee();
+});
+}
+
+// 背包分类筛选
+document.querySelectorAll('.category-pill').forEach(pill => {
+pill.addEventListener('click', () => {
+document.querySelectorAll('.category-pill').forEach(p => {
+p.classList.remove('category-pill-active', 'bg-inventory/20', 'text-white');
+p.classList.add('bg-slate-800', 'hover:bg-slate-700');
+});
+pill.classList.remove('bg-slate-800', 'hover:bg-slate-700');
+pill.classList.add('category-pill-active', 'bg-inventory/20', 'text-white');
+updateInventoryDisplay();
+});
+});
+
+// 装备筛选
+document.querySelectorAll('.equip-filter-btn').forEach(btn => {
+btn.addEventListener('click', () => {
+document.querySelectorAll('.equip-filter-btn').forEach(b => {
+b.classList.remove('bg-equipment/20', 'text-white');
+b.classList.add('bg-slate-800', 'hover:bg-slate-700');
+});
+btn.classList.remove('bg-slate-800', 'hover:bg-slate-700');
+btn.classList.add('bg-equipment/20', 'text-white');
+
+// 这里可以添加装备筛选逻辑
+});
+});
+
+// 关闭境界突破弹窗
+if (elements.closeAscend) {
+elements.closeAscend.addEventListener('click', () => {
+toggleModal('ascend-modal');
+});
+}
+
+// 取消突破
+if (elements.cancelAscend) {
+elements.cancelAscend.addEventListener('click', () => {
+toggleModal('ascend-modal');
+});
+}
+
+// 确认突破
+if (elements.confirmAscend) {
+elements.confirmAscend.addEventListener('click', performAscend);
+}
+
+// 点击页面其他地方关闭法术选择器
+document.addEventListener('click', (e) => {
+if (!e.target.closest('#spell-button') && !e.target.closest('#spell-selector')) {
+document.getElementById('spell-selector')?.classList.add('hidden');
+}
+
+if (!e.target.closest('#boss-spell-button') && !e.target.closest('#boss-spell-selector')) {
+document.getElementById('boss-spell-selector')?.classList.add('hidden');
+}
+});
+
+} catch (error) {
+console.error("添加事件监听器失败:", error);
+}
+}
+
+// 切换弹窗显示
+function toggleModal(modalId) {
+const modal = document.getElementById(modalId);
+if (modal) {
+if (modal.classList.contains('hidden')) {
+modal.classList.remove('hidden');
+modal.classList.add('flex');
+} else {
+modal.classList.add('hidden');
+modal.classList.remove('flex');
+}
+}
+}
+
+// 显示通知
+function showNotification(message, type = 'success') {
+try {
+const notification = document.getElementById('notification');
+if (notification) {
+notification.textContent = message;
+notification.className = 'notification';
+notification.classList.add(type);
+notification.classList.add('show');
+
+setTimeout(() => {
+notification.classList.remove('show');
+}, 3000);
+}
+} catch (error) {
+console.error("显示通知失败:", error);
+}
+}
+
+// 显示弹窗
+function showPopup(popupId) {
+const popup = document.getElementById(popupId);
+if (popup) {
+popup.classList.remove('opacity-0', 'pointer-events-none');
+popup.classList.add('opacity-100', 'pointer-events-auto');
+
+setTimeout(() => {
+popup.classList.add('opacity-0', 'pointer-events-none');
+popup.classList.remove('opacity-100', 'pointer-events-auto');
+}, 2000);
+}
+}
+
+// 显示境界突破弹窗
+function showAscendModal() {
+try {
+const currentRealm = realms[gameState.realm];
+const nextRealm = realms[gameState.realm + 1];
+
+// 更新弹窗内容
+if (elements.nextRealmText) {
+elements.nextRealmText.textContent = nextRealm.name;
+elements.nextRealmText.className = `text-${nextRealm.color}`;
+}
+
+// 突破丹数量
+const breakthroughCount = gameState.inventory.filter(item => item.type === 'breakthrough' && item.realm === gameState.realm).length;
+
+// 更新进度条
+const levelPercent = Math.min(100, (gameState.level / nextRealm.requiredLevel) * 100);
+const stagePercent = gameState.stage >= 10 ? 100 : 0;
+const spiritualPercent = Math.min(100, (gameState.spiritualPower / nextRealm.requiredSpiritual) * 100);
+const daoPercent = Math.min(100, (gameState.daoFoundation / nextRealm.requiredDao) * 100);
+const itemPercent = breakthroughCount >= 1 ? 100 : 0;
+
+if (elements.ascendLevel) elements.ascendLevel.textContent = `${gameState.level}/${nextRealm.requiredLevel}`;
+if (elements.ascendLevelBar) elements.ascendLevelBar.style.width = `${levelPercent}%`;
+
+if (elements.ascendStage) elements.ascendStage.textContent = `${gameState.stage}/10`;
+if (elements.ascendStageBar) elements.ascendStageBar.style.width = `${stagePercent}%`;
+
+if (elements.ascendSpiritual) elements.ascendSpiritual.textContent = `${gameState.spiritualPower}/${nextRealm.requiredSpiritual}`;
+if (elements.ascendSpiritualBar) elements.ascendSpiritualBar.style.width = `${spiritualPercent}%`;
+
+if (elements.ascendDao) elements.ascendDao.textContent = `${gameState.daoFoundation}/${nextRealm.requiredDao}`;
+if (elements.ascendDaoBar) elements.ascendDaoBar.style.width = `${daoPercent}%`;
+
+if (elements.ascendItem) elements.ascendItem.textContent = `${breakthroughCount}/1`;
+if (elements.ascendItemBar) elements.ascendItemBar.style.width = `${itemPercent}%`;
+
+// 更新奖励法术
+if (elements.ascendSpellReward) {
+elements.ascendSpellReward.textContent = nextRealm.rewardSpell;
+}
+
+// 检查是否可以突破
+const canAscend = gameState.level >= nextRealm.requiredLevel &&
+gameState.stage >= 10 &&
+gameState.spiritualPower >= nextRealm.requiredSpiritual &&
+gameState.daoFoundation >= nextRealm.requiredDao &&
+breakthroughCount >= 1;
+
+if (elements.confirmAscend) {
+if (canAscend) {
+elements.confirmAscend.removeAttribute('disabled');
+elements.confirmAscend.classList.remove('opacity-50', 'cursor-not-allowed');
+} else {
+elements.confirmAscend.setAttribute('disabled', 'true');
+elements.confirmAscend.classList.add('opacity-50', 'cursor-not-allowed');
+}
+}
+
+// 显示弹窗
+toggleModal('ascend-modal');
+
+} catch (error) {
+console.error("显示境界突破弹窗失败:", error);
+}
+}
+
+// 预加载图片
+async function preloadImages() {
+try {
+const imageUrls = [
+'https://picsum.photos/id/64/200/200', // 玩家头像
+'https://picsum.photos/id/237/200/200', // 野狼
+'https://picsum.photos/id/1000/200/200', // 黑熊
+'https://picsum.photos/id/1002/200/200', // 猛虎
+'https://picsum.photos/id/1015/200/200' // 青龙
+];
+
+// 预加载所有图片
+const promises = imageUrls.map(url => {
+return new Promise((resolve, reject) => {
+const img = new Image();
+img.src = url;
+img.onload = resolve;
+img.onerror = reject;
+});
+});
+
+await Promise.all(promises);
+} catch (error) {
+console.error("图片预加载失败:", error);
+// 图片加载失败不中断游戏初始化，仅记录错误
+}
+}
+
+// 切换法术选择器显示
+function toggleSpellSelector(selectorId) {
+const selector = document.getElementById(selectorId);
+if (selector) {
+// 清空并重新填充法术列表
+selector.innerHTML = '';
+
+// 获取可用法术（有足够灵力）
+const availableSpells = gameState.spells.filter(spell => {
+return gameState.currentMp >= spell.mpCost;
+});
+
+if (availableSpells.length === 0) {
+selector.innerHTML = '<button disabled>没有可用法术（灵力不足）</button>';
+} else {
+availableSpells.forEach(spell => {
+const button = document.createElement('button');
+button.innerHTML = `
+<i class="fa ${getSpellIcon(spell.type)} mr-2"></i>
+${spell.name}
+<span class="ml-2 text-xs text-blue-400">(${spell.mpCost}灵力)</span>
+`;
+button.addEventListener('click', () => {
+// 判断是普通战斗还是神兽战斗
+if (selectorId === 'spell-selector') {
+useSpellInBattle(spell.id);
+} else {
+useSpellInBossBattle(spell.id);
+}
+selector.classList.add('hidden');
+});
+selector.appendChild(button);
+});
+}
+
+selector.classList.toggle('hidden');
+}
+}
+
+// 检查突破条件
+function checkAscendCondition() {
+const currentRealm = realms[gameState.realm];
+const nextRealm = realms[gameState.realm + 1];
+
+if (!nextRealm) return; // 已经是最高境界
+
+const breakthroughCount = gameState.inventory.filter(item => item.type === 'breakthrough' && item.realm === gameState.realm).length;
+
+const canAscend = gameState.level >= nextRealm.requiredLevel &&
+gameState.stage >= 10 &&
+gameState.spiritualPower >= nextRealm.requiredSpiritual &&
+gameState.daoFoundation >= nextRealm.requiredDao &&
+breakthroughCount >= 1;
+
+// 显示或隐藏突破按钮
+const ascendButton = document.getElementById('ascend-button');
+if (ascendButton) {
+if (canAscend) {
+ascendButton.classList.remove('opacity-0', 'pointer-events-none');
+ascendButton.classList.add('opacity-100', 'pointer-events-auto');
+} else {
+ascendButton.classList.add('opacity-0', 'pointer-events-none');
+ascendButton.classList.remove('opacity-100', 'pointer-events-auto');
+}
+}
+}
+
+// 检查阶段提升条件
+function checkStageUpCondition() {
+if (gameState.stageProgress >= gameState.stageRequirement && gameState.stage < 10) {
+stageUp();
+}
+}
+
+// 切换自动经验获取
+function toggleAutoExp() {
+gameState.autoExp = !gameState.autoExp;
+
+if (gameState.autoExp) {
+showNotification('自动获取经验已开启');
+autoExpInterval = setInterval(() => {
+// 自动获取经验的量与灵气相关
+const expPerSecond = gameState.spiritualPower * 0.1 + 0.5;
+gainExp(Math.round(expPerSecond));
+}, 1000);
+} else {
+showNotification('自动获取经验已关闭');
+if (autoExpInterval) {
+clearInterval(autoExpInterval);
+autoExpInterval = null;
+}
+}
+
+updateUI();
+saveGameState();
+}
+
+// 切换打坐状态
+function toggleMeditation() {
+if (gameState.meditating) {
+// 结束打坐
+gameState.meditating = false;
+if (meditationInterval) {
+clearInterval(meditationInterval);
+meditationInterval = null;
+}
+showNotification('结束打坐');
+} else {
+// 开始打坐，持续5分钟
+gameState.meditating = true;
+const meditationDuration = 5 * 60 * 1000; // 5分钟
+meditationEndTime = new Date(Date.now() + meditationDuration);
+
+showNotification('开始打坐修炼，持续5分钟');
+
+// 每30秒获得一次修炼进度和属性提升
+meditationInterval = setInterval(() => {
+const progressGain = Math.floor(gameState.comprehension * 0.5 + 5);
+const spiritualGain = Math.random() > 0.7 ? 1 : 0;
+const daoGain = Math.random() > 0.7 ? 1 : 0;
+
+gameState.stageProgress += progressGain;
+if (spiritualGain) gameState.spiritualPower += spiritualGain;
+if (daoGain) gameState.daoFoundation += daoGain;
+
+showNotification(`打坐中获得${progressGain}点修炼进度 ${spiritualGain ? '+1灵气' : ''} ${daoGain ? '+1道基' : ''}`);
+
+checkStageUpCondition();
+updateUI();
+saveGameState();
+}, 30000); // 30秒
+}
+
+updateMeditationUI();
+saveGameState();
+}
+
+// 页面加载完成后初始化游戏
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
+    

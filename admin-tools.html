@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>修仙游戏 - 管理员工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <!-- 配置Tailwind自定义颜色 -->
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    primary: '#4F46E5',
+                    secondary: '#10B981',
+                    accent: '#F59E0B',
+                    dark: '#1E293B',
+                    light: '#F8FAFC',
+                    debug: '#EF4444',
+                    inventory: '#6366F1',
+                    equipment: '#8B5CF6',
+                    battle: '#DC2626',
+                    magic: '#EC4899',
+                    mythic: '#FF4500'
+                },
+                fontFamily: {
+                    inter: ['Inter', 'sans-serif'],
+                },
+            }
+        }
+    }
+    </script>
+    
+    <style>
+        body {
+            background-color: #0F172A;
+            color: #F8FAFC;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .debug-card {
+            transition: all 0.3s ease;
+        }
+        
+        .debug-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .debug-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .debug-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .debug-btn:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-5xl mx-auto">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold flex items-center">
+                <i class="fa fa-wrench text-debug mr-3"></i>
+                修仙游戏管理员工具
+            </h1>
+            <p class="text-slate-400 mt-2">用于测试和调试游戏功能的专用工具</p>
+            <a href="v3.0_fixed_index.html" class="text-accent hover:underline mt-4 inline-block flex items-center">
+                <i class="fa fa-arrow-left mr-1"></i> 返回游戏
+            </a>
+        </header>
+        
+        <!-- 角色管理 -->
+        <div class="bg-slate-800/50 rounded-xl p-6 mb-8">
+            <h2 class="text-xl font-bold mb-6 flex items-center">
+                <i class="fa fa-user-circle text-primary mr-2"></i>
+                角色管理
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <button id="debug-level-up" class="debug-btn w-full py-4 bg-accent hover:bg-amber-500 text-dark font-bold rounded-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center">
+                    <i class="fa fa-arrow-up mr-2"></i>快速升级 (当前: <span id="current-level">1</span>)
+                </button>
+                
+                <button id="debug-add-attributes" class="debug-btn w-full py-4 bg-primary hover:bg-blue-500 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center">
+                    <i class="fa fa-plus-circle mr-2"></i>提升所有属性
+                </button>
+                
+                <button id="debug-fill-stage" class="debug-btn w-full py-4 bg-secondary hover:bg-green-500 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center">
+                    <i class="fa fa-fill mr-2"></i>填满修炼进度
+                </button>
+                
+                <button id="debug-ascend-realm" class="debug-btn w-full py-4 bg-magic hover:bg-pink-500 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center">
+                    <i class="fa fa-rocket mr-2"></i>突破当前境界
+                </button>
+            </div>
+            
+            <div class="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <h3 class="text-lg font-semibold mb-4">直接设置</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm text-slate-400 mb-1">等级</label>
+                        <input type="number" id="set-level" min="1" max="999" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm text-slate-400 mb-1">境界</label>
+                        <select id="set-realm" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary">
+                            <option value="0">凡人境</option>
+                            <option value="1">筑基境</option>
+                            <option value="2">金丹境</option>
+                            <option value="3">元婴境</option>
+                            <option value="4">化神境</option>
+                            <option value="5">仙人境</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm text-slate-400 mb-1">阶段</label>
+                        <input type="number" id="set-stage" min="1" max="10" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                </div>
+                
+                <button id="apply-character-settings" class="mt-4 py-2 px-6 bg-primary hover:bg-blue-500 text-white font-bold rounded-lg transition-all duration-300">
+                    应用设置
+                </button>
+            </div>
+        </div>
+        
+        <!-- 物品管理 -->
+        <div class="bg-slate-800/50 rounded-xl p-6 mb-8">
+            <h2 class="text-xl font-bold mb-6 flex items-center">
+                <i class="fa fa-briefcase text-inventory mr-2"></i>
+                物品管理
+            </h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                <button id="add-common-equip" class="debug-btn w-full py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center text-sm">
+                    <i class="fa fa-shield mr-1.5"></i>添加普通装备
+                </button>
+                
+                <button id="add-rare-equip" class="debug-btn w-full py-3 bg-rare hover:bg-blue-600 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center text-sm">
+                    <i class="fa fa-shield mr-1.5"></i>添加稀有装备
+                </button>
+                
+                <button id="add-epic-equip" class="debug-btn w-full py-3 bg-epic hover:bg-purple-600 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center text-sm">
+                    <i class="fa fa-shield mr-1.5"></i>添加史诗装备
+                </button>
+                
+                <button id="add-legendary-equip" class="debug-btn w-full py-3 bg-legendary hover:bg-amber-600 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center text-sm">
+                    <i class="fa fa-shield mr-1.5"></i>添加传说装备
+                </button>
+                
+                <button id="add-mythic-equip" class="debug-btn w-full py-3 bg-mythic hover:bg-orange-600 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center text-sm">
+                    <i class="fa fa-shield mr-1.5"></i>添加神话装备
+                </button>
+                
+                <button id="add-breakthrough-item" class="debug-btn w-full py-3 bg-secondary hover:bg-green-600 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center text-sm">
+                    <i class="fa fa-flask mr-1.5"></i>添加突破丹
+                </button>
+                
+                <button id="add-exp-item" class="debug-btn w-full py-3 bg-accent hover:bg-amber-600 text-dark font-bold rounded-xl transition-all duration-300 flex items-center justify-center text-sm">
+                    <i class="fa fa-star mr-1.5"></i>添加经验道具
+                </button>
+                
+                <button id="add-boost-item" class="debug-btn w-full py-3 bg-magic hover:bg-pink-600 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center text-sm">
+                    <i class="fa fa-potion mr-1.5"></i>添加属性道具
+                </button>
+                
+                <button id="add-spell-item" class="debug-btn w-full py-3 bg-primary hover:bg-blue-600 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center text-sm">
+                    <i class="fa fa-book mr-1.5"></i>添加法术秘籍
+                </button>
+            </div>
+            
+            <button id="clear-inventory" class="debug-btn py-3 px-6 bg-debug hover:bg-red-600 text-white font-bold rounded-xl transition-all duration-300">
+                <i class="fa fa-trash mr-2"></i>清空背包
+            </button>
+        </div>
+        
+        <!-- 法术管理 -->
+        <div class="bg-slate-800/50 rounded-xl p-6 mb-8">
+            <h2 class="text-xl font-bold mb-6 flex items-center">
+                <i class="fa fa-book text-magic mr-2"></i>
+                法术管理
+            </h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <button id="learn-all-spells" class="debug-btn w-full py-3 bg-magic hover:bg-pink-600 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center">
+                    <i class="fa fa-book mr-2"></i>学会所有法术
+                </button>
+                
+                <button id="add-attack-spells" class="debug-btn w-full py-3 bg-battle hover:bg-red-600 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center">
+                    <i class="fa fa-bolt mr-2"></i>添加攻击法术
+                </button>
+                
+                <button id="add-defense-spells" class="debug-btn w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center">
+                    <i class="fa fa-shield mr-2"></i>添加防御法术
+                </button>
+                
+                <button id="add-support-spells" class="debug-btn w-full py-3 bg-secondary hover:bg-green-500 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center">
+                    <i class="fa fa-heart mr-2"></i>添加辅助法术
+                </button>
+                
+                <button id="forget-all-spells" class="debug-btn w-full py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center">
+                    <i class="fa fa-eraser mr-2"></i>遗忘所有法术
+                </button>
+            </div>
+        </div>
+        
+        <!-- 战斗管理 -->
+        <div class="bg-slate-800/50 rounded-xl p-6 mb-8">
+            <h2 class="text-xl font-bold mb-6 flex items-center">
+                <i class="fa fa-crosshairs text-battle mr-2"></i>
+                战斗管理
+            </h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button id="debug-start-battle" class="debug-btn w-full py-3 bg-battle hover:bg-red-600 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center">
+                    <i class="fa fa-wolf-pack-battle mr-2"></i>立即开始战斗
+                </button>
+                
+                <button id="debug-start-boss-battle" class="debug-btn w-full py-3 bg-mythic hover:bg-orange-600 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center">
+                    <i class="fa fa-dragon mr-2"></i>立即挑战神兽
+                </button>
+                
+                <button id="debug-win-battle" class="debug-btn w-full py-3 bg-secondary hover:bg-green-500 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center">
+                    <i class="fa fa-trophy mr-2"></i>直接获得战斗胜利
+                </button>
+                
+                <button id="debug-reset-battle-stats" class="debug-btn w-full py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center">
+                    <i class="fa fa-refresh mr-2"></i>重置战斗统计
+                </button>
+            </div>
+        </div>
+        
+        <!-- 系统管理 -->
+        <div class="bg-slate-800/50 rounded-xl p-6">
+            <h2 class="text-xl font-bold mb-6 flex items-center">
+                <i class="fa fa-cogs text-primary mr-2"></i>
+                系统管理
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button id="debug-save-game" class="debug-btn w-full py-3 bg-primary hover:bg-blue-500 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center">
+                    <i class="fa fa-save mr-2"></i>保存游戏状态
+                </button>
+                
+                <button id="debug-load-game" class="debug-btn w-full py-3 bg-accent hover:bg-amber-500 text-dark font-bold rounded-xl transition-all duration-300 flex items-center justify-center">
+                    <i class="fa fa-load mr-2"></i>加载游戏状态
+                </button>
+                
+                <button id="debug-reset-game" class="debug-btn w-full py-3 bg-debug hover:bg-red-600 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center">
+                    <i class="fa fa-trash mr-2"></i>重置游戏进度
+                </button>
+                
+                <button id="debug-print-state" class="debug-btn w-full py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center">
+                    <i class="fa fa-code mr-2"></i>打印游戏状态到控制台
+                </button>
+            </div>
+            
+            <div class="mt-6 p-4 bg-slate-900/50 rounded-lg border border-slate-700">
+                <h3 class="text-lg font-semibold mb-3">游戏状态导出/导入</h3>
+                
+                <div class="mb-4">
+                    <button id="export-game-state" class="py-2 px-4 bg-secondary hover:bg-green-500 text-white font-bold rounded-lg transition-all duration-300 mr-2">
+                        导出状态
+                    </button>
+                    <button id="import-game-state" class="py-2 px-4 bg-primary hover:bg-blue-500 text-white font-bold rounded-lg transition-all duration-300">
+                        导入状态
+                    </button>
+                </div>
+                
+                <textarea id="game-state-json" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary" rows="6" placeholder="游戏状态JSON将显示在这里..."></textarea>
+            </div>
+        </div>
+        
+        <div class="mt-12 text-center text-slate-500 text-sm">
+            <p>修仙游戏管理员工具 | 版本 V7.3 - 修复版 V3.0</p>
+        </div>
+    </div>
+    
+    <script src="admin-tools.js"></script>
+    <script src="game-core.js"></script>
+    <script src="elements.js"></script>
+</body>
+</html>
+    
